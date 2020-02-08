@@ -11,6 +11,7 @@ import CoreLocation
 extension WeatherServices.OpenWeatherMap {
 
     public struct CurrentConditions: Decodable {
+
         var id: Int
         var cityName: String
         var timeZoneOffset: Int
@@ -33,6 +34,7 @@ extension WeatherServices.OpenWeatherMap {
             case sysInfo = "sys"
             case coordinates = "coord"
         }
+
     }
 
     struct Weather: Decodable {
@@ -147,15 +149,15 @@ extension WeatherServices.OpenWeatherMap {
 
 // MARK: CustomStringConvertible
 
-extension WeatherServices.OpenWeatherMap.CurrentConditions: CustomStringConvertible {
-    public var description: String {
+extension WeatherServices.OpenWeatherMap.CurrentConditions: MetricOrImperialRepresentable {
+    public func description(asImperial imperial: Bool) -> String {
         let components = [
             "\t" + coordinates.description,
             "\t" + sysInfo.description,
             weather.map { $0.description }.joined(separator: ","),
             clouds?.description,
-            temperature.description,
-            wind?.description,
+            temperature.description(asImperial: imperial),
+            wind?.description(asImperial: imperial),
             rain?.description,
             snow?.description
         ]
@@ -175,26 +177,26 @@ extension WeatherServices.OpenWeatherMap.Weather: CustomStringConvertible {
 }
 
 
-extension WeatherServices.OpenWeatherMap.Temperature: CustomStringConvertible {
-    var description: String {
+extension WeatherServices.OpenWeatherMap.Temperature: MetricOrImperialRepresentable {
+    public func description(asImperial imperial: Bool) -> String {
         return
             """
             Temperature:
-            \tCurrent: \(temp.asImperial)
-            \tFeels Like: \(feelsLike.asImperial)
-            \tMin: \(minTemp.asImperial) Max: \(maxTemp.asImperial)
+            \tCurrent: \(imperial ? temp.asImperial : temp.asMetric)
+            \tFeels Like: \(imperial ? feelsLike.asImperial : feelsLike.asMetric)
+            \tMin: \(imperial ? minTemp.asImperial : minTemp.asMetric) Max: \(imperial ? maxTemp.asImperial : maxTemp.asMetric)
             \tHumidity: \(humidity)%
-            \tPressure: \(pressure.asImperial)
+            \tPressure: \(imperial ? pressure.asImperial : pressure.asMetric)
             """
     }
 }
 
-extension WeatherServices.OpenWeatherMap.Wind: CustomStringConvertible {
-    var description: String {
+extension WeatherServices.OpenWeatherMap.Wind: MetricOrImperialRepresentable {
+    public func description(asImperial imperial: Bool) -> String {
         return
             """
             Wind:
-            \t\(speed.asImperial) at \(direction)°
+            \t\(imperial ? speed.asImperial : speed.asMetric) at \(direction)°
             """
     }
 }

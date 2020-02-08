@@ -14,6 +14,7 @@ import WeatherServices
 
 let argParser = ArgumentParser(commandName: "weather", usage: "<flags> ZipCode", overview: "returns the current weather")
 let temperatureOnlyArg = argParser.add(option: "--just-temp", shortName: "-j", kind: Bool.self, usage: "return only the temperature", completion: ShellCompletion.none)
+let metricUnitsArg = argParser.add(option: "--metric", shortName: "-m", kind: Bool.self, usage: "display metric values", completion: ShellCompletion.none)
 let zipCodeArg = argParser.add(positional: "ZipCode", kind: String.self, optional: false, usage: "5 digit zip code", completion: ShellCompletion.none)
 
 var cancellable: AnyCancellable?
@@ -24,6 +25,7 @@ do {
     guard let zipCode = parsedArgs.get(zipCodeArg) else { exit(-1) }
 
     let temp = parsedArgs.get(temperatureOnlyArg) ?? false
+    let displayAsMetric = parsedArgs.get(metricUnitsArg) ?? false
 
     guard let apiKey = ProcessInfo.processInfo.environment["OPENWEATHERMAP_API"] else {
         argParser.printUsage(on: Basic.stderrStream)
@@ -46,7 +48,7 @@ do {
                 print("done")
             }
         }) { currentConditions in
-            print("\(currentConditions)")
+            print("\(currentConditions.description(asImperial: !displayAsMetric))")
         }
 
     waitSemaphore.wait()

@@ -19,12 +19,18 @@ extension Double {
     }
 }
 
+public protocol MetricOrImperialRepresentable {
+    func description(asImperial imperial: Bool) -> String
+}
+
+
 extension WeatherServices.Types {
 
     enum TemperatureValue: CustomStringConvertible {
         case kelvin(Double)
         case celcius(Double)
         case fahrenheit(Double)
+
         var asImperial: TemperatureValue  {
             switch self {
             case .fahrenheit:
@@ -35,6 +41,7 @@ extension WeatherServices.Types {
                 return .fahrenheit((value - 273.15) * 9/5  + 32)
             }
         }
+
         var asMetric: TemperatureValue {
             switch self {
             case .fahrenheit(let value):
@@ -63,7 +70,7 @@ extension WeatherServices.Types {
     enum Speed: CustomStringConvertible {
 
         static let conversionFactor: Double = 1.609
-
+        case msec(Double)
         case kph(Double)
         case mph(Double)
 
@@ -73,13 +80,29 @@ extension WeatherServices.Types {
                 return "\(value.formatted(to: 1)) Mph"
             case .kph(let value):
                 return "\(value.formatted(to: 1)) Kph"
+            case .msec(let value):
+                return "\(value.formatted(to: 1)) msec"
             }
         }
 
+        var asMetric: Speed {
+            switch self {
+            case .msec(let value):
+                return .kph(value * 3.6)
+            case .kph:
+                return self
+            case .mph(let value):
+                return .kph(value * 1.609)
+            }
+        }
+
+
         var asImperial: Speed {
             switch self {
-            case .kph(let value):
+            case .msec(let value):
                 return .mph(value * 2.23694)
+            case .kph(let value):
+                return .mph(value / 1.609)
             case .mph:
                 return self
             }

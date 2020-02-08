@@ -19,7 +19,6 @@ public extension WeatherServices.ServiceErrors {
 
 }
 
-
 public extension WeatherServices.OpenWeatherMap {
 
     struct ClientConfig: CustomDebugStringConvertible {
@@ -72,7 +71,8 @@ public extension WeatherServices.OpenWeatherMap {
                     throw WeatherServices.ServiceErrors.RequestError.badResponse(response)
                 }
                 return fetchData
-            }.decode(type: WeatherServices.OpenWeatherMap.CurrentConditions.self, decoder: JSONDecoder())
+            }
+            .decode(type: WeatherServices.OpenWeatherMap.CurrentConditions.self, decoder: JSONDecoder())
             .mapError { e in
                 return WeatherServices.ServiceErrors.RequestError.badData(e)
             }.eraseToAnyPublisher()

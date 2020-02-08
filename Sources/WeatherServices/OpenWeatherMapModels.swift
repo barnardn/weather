@@ -18,12 +18,21 @@ extension WeatherServices.OpenWeatherMap {
 
         var sysInfo: Sys
         var coordinates: Coordinates
-        var weather: Weather
+        var weather: [Weather]
         var temperature: Temperature
         var clouds: Clouds?
         var wind: Wind?
-        var rain: VolumeOverTimeMeasurable?
-        var snow: VolumeOverTimeMeasurable?
+        var rain: VolumeOverTime?
+        var snow: VolumeOverTime?
+
+        private enum CodingKeys: String, CodingKey {
+            case id, visibility, weather, clouds, rain, wind, snow
+            case cityName = "name"
+            case timeZoneOffset = "timezone"
+            case temperature = "main"
+            case sysInfo = "sys"
+            case coordinates = "coord"
+        }
     }
 
 
@@ -93,7 +102,7 @@ extension WeatherServices.OpenWeatherMap {
     }
 
     // rain and snow
-    internal struct VolumeOverTimeMeasurable: Decodable {
+    internal struct VolumeOverTime: Decodable {
         var oneHour: Double
         var threeHour: Double
 

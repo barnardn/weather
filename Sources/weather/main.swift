@@ -28,7 +28,7 @@ do {
         print("\nMissing Environment Variable: set the OPENWEATHERMAP_API environment variable to your api key.\n\n")
         exit(-1)
     }
-    let clientConfig = OpenWeatherMapConfiguration(apiKey: apiKey, zipCode: zipCode, tempOnly: temp)
+    let clientConfig = WeatherServices.OpenWeatherMap.ClientConfig(apiKey: apiKey, zipCode: zipCode, tempOnly: temp)
     print("Configuration: \(clientConfig)")
 
 } catch ArgumentParserError.expectedValue(let option) {

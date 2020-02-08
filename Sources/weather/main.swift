@@ -7,14 +7,16 @@
 //
 
 import Foundation
+import Combine
 import SPMUtility
 import Basic
 import WeatherServices
 
-
 let argParser = ArgumentParser(commandName: "weather", usage: "<flags> ZipCode", overview: "returns the current weather")
 let temperatureOnlyArg = argParser.add(option: "--just-temp", shortName: "-j", kind: Bool.self, usage: "return only the temperature", completion: ShellCompletion.none)
 let zipCodeArg = argParser.add(positional: "ZipCode", kind: String.self, optional: false, usage: "5 digit zip code", completion: ShellCompletion.none)
+
+var cancellable: AnyCancellable?
 
 let argv = Array(CommandLine.arguments.dropFirst())
 do {
@@ -29,7 +31,25 @@ do {
         exit(-1)
     }
     let clientConfig = WeatherServices.OpenWeatherMap.ClientConfig(apiKey: apiKey, zipCode: zipCode, tempOnly: temp)
-    print("Configuration: \(clientConfig)")
+
+    let openWeatherMap = WeatherServices.OpenWeatherMap.Client(config: clientConfig)
+
+    let waitSemaphore = DispatchSemaphore(value: 0)
+
+    cancellable = openWeatherMap.fetchCurrentConditions()
+        .sink(receiveCompletion: { completionEvent in
+            defer { waitSemaphore.signal() }
+            switch completionEvent {
+            case .failure(let error):
+                print("Failed to get weather \(error)")
+            default:
+                print("done")
+            }
+        }) { currentConditions in
+            print("\(currentConditions)")
+        }
+
+    waitSemaphore.wait()
 
 } catch ArgumentParserError.expectedValue(let option) {
     print("Missing value for argument \(option)")

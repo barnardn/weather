@@ -10,7 +10,7 @@ import CoreLocation
 
 extension WeatherServices.OpenWeatherMap {
 
-    struct CurrentConditions: Decodable {
+    public struct CurrentConditions: Decodable {
         var id: Int
         var cityName: String
         var timeZoneOffset: Int

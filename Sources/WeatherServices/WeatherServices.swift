@@ -9,4 +9,5 @@ import Foundation
 
 public enum WeatherServices {
     public enum OpenWeatherMap { }
+    public enum ServiceErrors { }
 }

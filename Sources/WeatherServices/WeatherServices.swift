@@ -13,7 +13,7 @@ public enum WeatherServices {
     public enum Types { }
 }
 
-extension Double {
+public extension Double {
     func formatted(to decimalPlaces: Int) -> String {
         return String(format: "%.*f", decimalPlaces, self)
     }
@@ -23,10 +23,9 @@ public protocol MetricOrImperialRepresentable {
     func description(asImperial imperial: Bool) -> String
 }
 
-
 extension WeatherServices.Types {
 
-    enum TemperatureValue: CustomStringConvertible {
+    public enum TemperatureValue: CustomStringConvertible, MetricOrImperialRepresentable {
         case kelvin(Double)
         case celcius(Double)
         case fahrenheit(Double)
@@ -53,7 +52,11 @@ extension WeatherServices.Types {
             }
         }
 
-        var description: String {
+        public func description(asImperial imperial: Bool) -> String {
+            return imperial ? self.asImperial.description : self.asMetric.description
+        }
+
+        public var description: String {
             let unit: String
             switch self {
             case .kelvin(let value):

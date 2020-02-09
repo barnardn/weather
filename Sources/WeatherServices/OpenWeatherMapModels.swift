@@ -12,19 +12,19 @@ extension WeatherServices.OpenWeatherMap {
 
     public struct CurrentConditions: Decodable {
 
-        var id: Int
-        var cityName: String
-        var timeZoneOffset: Int
-        var visibility: Int
+        let id: Int
+        let cityName: String
+        let timeZoneOffset: Int
+        let visibility: Int
 
-        var sysInfo: Sys
-        var coordinates: Coordinates
-        var weather: [Weather]
-        var temperature: Temperature
-        var clouds: Clouds?
-        var wind: Wind?
-        var rain: VolumeOverTime?
-        var snow: VolumeOverTime?
+        let sysInfo: Sys
+        let coordinates: Coordinates
+        let weather: [Weather]
+        let temperature: Temperature
+        let clouds: Clouds?
+        let wind: Wind?
+        let rain: VolumeOverTime?
+        let snow: VolumeOverTime?
 
         private enum CodingKeys: String, CodingKey {
             case id, visibility, weather, clouds, rain, wind, snow
@@ -34,6 +34,8 @@ extension WeatherServices.OpenWeatherMap {
             case sysInfo = "sys"
             case coordinates = "coord"
         }
+
+        public var currentTemperature: WeatherServices.Types.TemperatureValue { temperature.temp }
 
     }
 

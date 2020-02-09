@@ -24,7 +24,7 @@ do {
     let parsedArgs = try argParser.parse(argv)
     guard let zipCode = parsedArgs.get(zipCodeArg) else { exit(-1) }
 
-    let temp = parsedArgs.get(temperatureOnlyArg) ?? false
+    let currentTempOnly = parsedArgs.get(temperatureOnlyArg) ?? false
     let displayAsMetric = parsedArgs.get(metricUnitsArg) ?? false
 
     guard let apiKey = ProcessInfo.processInfo.environment["OPENWEATHERMAP_API"] else {
@@ -32,7 +32,7 @@ do {
         print("\nMissing Environment Variable: set the OPENWEATHERMAP_API environment variable to your api key.\n\n")
         exit(-1)
     }
-    let clientConfig = WeatherServices.OpenWeatherMap.ClientConfig(apiKey: apiKey, zipCode: zipCode, tempOnly: temp)
+    let clientConfig = WeatherServices.OpenWeatherMap.ClientConfig(apiKey: apiKey, zipCode: zipCode)
 
     let openWeatherMap = WeatherServices.OpenWeatherMap.Client(config: clientConfig)
 
@@ -41,14 +41,15 @@ do {
     cancellable = openWeatherMap.fetchCurrentConditions()
         .sink(receiveCompletion: { completionEvent in
             defer { waitSemaphore.signal() }
-            switch completionEvent {
-            case .failure(let error):
+            if case .failure(let error) = completionEvent {
                 print("Failed to get weather \(error)")
-            default:
-                print("done")
             }
         }) { currentConditions in
-            print("\(currentConditions.description(asImperial: !displayAsMetric))")
+            if currentTempOnly {
+                print(currentConditions.currentTemperature.description(asImperial: !displayAsMetric))
+            } else {
+                print("\(currentConditions.description(asImperial: !displayAsMetric))")
+            }
         }
 
     waitSemaphore.wait()

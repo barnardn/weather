@@ -25,25 +25,19 @@ public extension WeatherServices.OpenWeatherMap {
 
         let apiKey: String
         let zipCode: String
-        var tempOnly: Bool = false
 
         internal var baseURL: URL {
             return URL(string: "http://api.openweathermap.org/data/2.5/weather?appid=\(apiKey)")!
         }
 
         /// designated initializer
-        public init(apiKey: String, zipCode: String, tempOnly: Bool) {
+        public init(apiKey: String, zipCode: String) {
             self.apiKey = apiKey
             self.zipCode = zipCode
-            self.tempOnly = tempOnly
-        }
-
-        init(apiKey: String, zipCode: String) {
-            self.init(apiKey: apiKey, zipCode: zipCode, tempOnly: true)
         }
 
         public var debugDescription: String {
-            return "{ apiKey: \(apiKey), zipCode: \(zipCode), tempOnly: \(tempOnly) }"
+            return "{ apiKey: \(apiKey), zipCode: \(zipCode) }"
         }
     }
 

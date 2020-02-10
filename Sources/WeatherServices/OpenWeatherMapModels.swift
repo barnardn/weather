@@ -131,7 +131,7 @@ extension WeatherServices.OpenWeatherMap {
     // rain and snow
     internal struct VolumeOverTime: Decodable {
         var oneHour: Double
-        var threeHour: Double
+        var threeHour: Double?
 
         private enum CodingKeys: String, CodingKey {
             case oneHour = "1h"
@@ -141,7 +141,7 @@ extension WeatherServices.OpenWeatherMap {
             let factor: Double = 0.0393701
             return VolumeOverTime(
                 oneHour: oneHour * factor,
-                threeHour: threeHour * factor
+                threeHour: threeHour.flatMap { $0 * factor }
             )
         }
 
@@ -153,23 +153,29 @@ extension WeatherServices.OpenWeatherMap {
 
 extension WeatherServices.OpenWeatherMap.CurrentConditions: MetricOrImperialRepresentable {
     public func description(asImperial imperial: Bool) -> String {
-        let components = [
+                
+        var components: [String] = [
             "\t" + coordinates.description,
             "\t" + sysInfo.description,
             weather.map { $0.description }.joined(separator: ","),
             clouds?.description,
             temperature.description(asImperial: imperial),
             wind?.description(asImperial: imperial),
-            rain?.description,
-            snow?.description
-        ]
-        .compactMap { $0 }
-        .joined(separator: "\n")
-
+        ].compactMap { $0 }
+        
+        if let rain = rain {
+            let rainPart = "Rain:\n\t\(rain.description)"
+            components.append(rainPart)
+        }
+        if let snow = snow {
+            let snowPart = "Snow:\n\t\(snow.description)"
+            components.append(snowPart)
+        }
+        
         return
             """
             Current Conditions for \(cityName), \(sysInfo.country)
-            \(components)
+            \(components.joined(separator: "\n"))
             """
     }
 }
@@ -216,10 +222,16 @@ extension WeatherServices.OpenWeatherMap.Clouds: CustomStringConvertible {
 extension WeatherServices.OpenWeatherMap.VolumeOverTime: CustomStringConvertible {
     var description: String {
         let imperial = self.imperial()
+        
+        var components = [String]()
+        components.append("1 Hour: \(imperial.oneHour.formatted(to: 2)) in/hour")
+        if let threeHour = imperial.threeHour {
+            components.append("3 Hour: \(threeHour.formatted(to: 2)) in/hour")
+        }
+        
         return
             """
-            1 Hour: \(imperial.oneHour) in/hour
-            3 Hour: \(imperial.threeHour) in/hour
+            \(components.joined(separator: "\n"))
             """
     }
 }

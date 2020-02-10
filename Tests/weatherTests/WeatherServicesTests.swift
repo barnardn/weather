@@ -37,7 +37,6 @@ class WeatherServicesTests: XCTestCase {
         XCTAssertNotNil(currentConditions)
         XCTAssert(currentConditions.cityName == "Mountain View")
         hasValidWeather(weather: currentConditions.weather.first!)
-        hasValidTemp(temperature: currentConditions.temperature)
     }
 
 }
@@ -50,11 +49,5 @@ extension WeatherServicesTests {
         XCTAssert(weather.summary == "Clear")
         XCTAssert(weather.iconName == "01d")
     }
-
-    func hasValidTemp(temperature: WeatherServices.OpenWeatherMap.Temperature) {
-        XCTAssert(temperature.temp.rounded() == 283, "expected 283, got \(temperature.temp.rounded())")
-        XCTAssert(temperature.feelsLike.rounded() == 282, "expected 282, got \(temperature.feelsLike.rounded())")
-    }
-
 
 }

@@ -115,8 +115,8 @@ extension WeatherServices.OpenWeatherMap {
 
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            let speedK = try container.decode(Double.self, forKey: .speed)
-            speed = .kph(speedK)
+            let speedMSec = try container.decode(Double.self, forKey: .speed)
+            speed = .msec(speedMSec)
             direction = try container.decode(Double.self, forKey: .direction)
         }
 

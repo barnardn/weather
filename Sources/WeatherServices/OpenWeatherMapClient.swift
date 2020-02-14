@@ -8,6 +8,7 @@
 
 import Foundation
 import Combine
+import SystemConfiguration
 
 public extension WeatherServices.ServiceErrors {
 
@@ -23,11 +24,13 @@ public extension WeatherServices.OpenWeatherMap {
 
     struct ClientConfig: CustomDebugStringConvertible {
 
+        static let host = "api.openweathermap.org"
+        
         let apiKey: String
         let zipCode: String
 
         internal var baseURL: URL {
-            return URL(string: "http://api.openweathermap.org/data/2.5/weather?appid=\(apiKey)")!
+            return URL(string: "http://\(host)/data/2.5/weather?appid=\(apiKey)")!
         }
 
         /// designated initializer
@@ -48,6 +51,7 @@ public extension WeatherServices.OpenWeatherMap {
         public init(config: ClientConfig) {
             self.config = config
         }
+        
         public func fetchCurrentConditions() -> AnyPublisher<CurrentConditions, WeatherServices.ServiceErrors.RequestError> {
             let zip = URLQueryItem(name: "zip", value: config.zipCode)
 
@@ -71,6 +75,14 @@ public extension WeatherServices.OpenWeatherMap {
                 return WeatherServices.ServiceErrors.RequestError.badData(e)
             }.eraseToAnyPublisher()
         }
+        
+        public func isApiReachable() -> Bool {
+            guard let reachability = SCNetworkReachabilityCreateWithName(nil, ClientConfig.host) else { return false }
+            let flags = SCNetworkReachabilityFlags()
+            return scn
+            
+        }
+        
     }
 
 }

@@ -16,8 +16,9 @@ class WeatherServicesTests: XCTestCase {
     var standardConfig = WeatherServices.OpenWeatherMap.ClientConfig(apiKey: apiKey, zipCode: defaultZip)
 
     var currentConditionsData: Data {
-        let jsonFile = Bundle(for: WeatherServicesTests.self).url(forResource: "current-conditions", withExtension: "json")
-        return try! Data(contentsOf: jsonFile!)
+        let path = URL(fileURLWithPath: #file).deletingLastPathComponent()
+        let jsonFile = path.appendingPathComponent("current-conditions.json")
+        return try! Data(contentsOf: jsonFile)
     }
 
     override func setUp() {
@@ -35,8 +36,9 @@ class WeatherServicesTests: XCTestCase {
             from: currentConditionsData
         )
         XCTAssertNotNil(currentConditions)
-        XCTAssert(currentConditions.cityName == "Mountain View")
+        XCTAssertEqual(currentConditions.cityName, "Mountain View")
         hasValidWeather(weather: currentConditions.weather.first!)
+        hasValidTemperature(temp: currentConditions.temperature)
     }
 
 }
@@ -48,6 +50,16 @@ extension WeatherServicesTests {
         XCTAssert(weather.details == "clear sky")
         XCTAssert(weather.summary == "Clear")
         XCTAssert(weather.iconName == "01d")
+    }
+    
+    func hasValidTemperature(temp: WeatherServices.OpenWeatherMap.Temperature) {
+        switch (temp.temp.asMetric, temp.temp.asImperial) {
+        case (.celcius(let celVal), .fahrenheit(let farVal)):
+            XCTAssertEqual(celVal.rounded(.up), 9)
+            XCTAssertEqual(farVal.rounded(.up), 48)
+        default:
+            XCTFail()
+        }
     }
 
 }

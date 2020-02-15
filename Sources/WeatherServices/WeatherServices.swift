@@ -23,126 +23,68 @@ public protocol MetricOrImperialRepresentable {
     func description(asImperial imperial: Bool) -> String
 }
 
+public protocol MetricOrImperialMeasurable {
+    func toImperial(_ imperial: Bool) -> Double
+}
+
 extension WeatherServices.Types {
 
-    public enum TemperatureValue: CustomStringConvertible, MetricOrImperialRepresentable {
-        case kelvin(Double)
-        case celcius(Double)
-        case fahrenheit(Double)
+    public struct TemperatureValue: MetricOrImperialMeasurable, MetricOrImperialRepresentable {
+        private let kelvin: Double
 
-        var asImperial: TemperatureValue  {
-            switch self {
-            case .fahrenheit:
-                return self
-            case .celcius(let value):
-                return .fahrenheit(value * 9/5 + 32)
-            case .kelvin(let value):
-                return .fahrenheit((value - 273.15) * 9/5  + 32)
-            }
+        var celcius: Double { kelvin - 273.15 }
+        var fahrenheit: Double { celcius * 9/5 + 32.0 }
+        
+        public init(kelvin: Double) {
+            self.kelvin = kelvin
         }
 
-        var asMetric: TemperatureValue {
-            switch self {
-            case .fahrenheit(let value):
-                return .celcius((value - 32) * 5 / 9)
-            case .celcius:
-                return self
-            case .kelvin(let value):
-                return .celcius(value - 273.15)
-            }
+        public func toImperial(_ imperial: Bool) -> Double {
+            imperial ? fahrenheit : celcius
         }
-
+        
         public func description(asImperial imperial: Bool) -> String {
-            return imperial ? self.asImperial.description : self.asMetric.description
+            "\(toImperial(imperial).formatted(to: 2))\(imperial ? "°F" : "°C")"
         }
+        
+    }
+    
+    struct Speed: MetricOrImperialMeasurable, MetricOrImperialRepresentable {
+        private let metersPerSec: Double
 
-        public var description: String {
-            let unit: String
-            switch self {
-            case .kelvin(let value):
-                unit = "\(value.formatted(to: 1))°K"
-            case .celcius(let value):
-                unit = "\(value.formatted(to: 1))°C"
-            case .fahrenheit(let value):
-                unit = "\(value.formatted(to: 1))°F"
-            }
-            return unit
+        var kph: Double { metersPerSec * 3.6 }
+        var mph: Double { metersPerSec * 2.23694 }
+        
+        init(metersPerSec: Double) {
+            self.metersPerSec = metersPerSec
+        }
+        
+        public func toImperial(_ imperial: Bool) -> Double {
+            imperial ? mph : kph
+        }
+        
+        public func description(asImperial imperial: Bool) -> String {
+            "\(toImperial(imperial).formatted(to: 2))\(imperial ? "mph" : "kph")"
         }
     }
+    
+    struct BaroPressusre: MetricOrImperialMeasurable, MetricOrImperialRepresentable {
+        let hpa: Double
+        var psi: Double { hpa / 6895.0 }
 
-    enum Speed: CustomStringConvertible {
-
-        static let conversionFactor: Double = 1.609
-        case msec(Double)
-        case kph(Double)
-        case mph(Double)
-
-        var description: String {
-            switch self {
-            case .mph(let value):
-                return "\(value.formatted(to: 1)) Mph"
-            case .kph(let value):
-                return "\(value.formatted(to: 1)) Kph"
-            case .msec(let value):
-                return "\(value.formatted(to: 1)) msec"
-            }
+        public init(hpa: Double) {
+            self.hpa = hpa
         }
 
-        var asMetric: Speed {
-            switch self {
-            case .msec(let value):
-                return .kph(value * 3.6)
-            case .kph:
-                return self
-            case .mph(let value):
-                return .kph(value * 1.609)
-            }
+        public func toImperial(_ imperial: Bool) -> Double {
+            imperial ? psi : hpa
+        }
+        
+        public func description(asImperial imperial: Bool) -> String {
+            "\(toImperial(imperial).formatted(to: 2))\(imperial ? "psi" : "hpa")"
         }
 
-
-        var asImperial: Speed {
-            switch self {
-            case .msec(let value):
-                return .mph(value * 2.23694)
-            case .kph(let value):
-                return .mph(value / 1.609)
-            case .mph:
-                return self
-            }
-        }
-    }
-
-    enum BaroPressusre: CustomStringConvertible {
-        case hpa(Double)
-        case psi(Double)
-
-        var description: String {
-            switch self {
-            case .hpa(let value):
-                return "\(value.formatted(to: 1)) hPa"
-            case .psi(let value):
-                return "\(value.formatted(to: 1)) psi"
-            }
-        }
-
-        var asImperial: BaroPressusre {
-            switch self {
-            case .hpa(let value):
-                return .psi(value / 6895)
-            case .psi:
-                return self
-            }
-        }
-
-        var asMetric: BaroPressusre {
-            switch self {
-            case .hpa:
-                return self
-            case .psi(let value):
-                return .hpa(value * 6895)
-            }
-        }
-
+        
     }
 
 }

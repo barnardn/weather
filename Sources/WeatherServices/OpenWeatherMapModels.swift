@@ -15,7 +15,7 @@ extension WeatherServices.OpenWeatherMap {
         let id: Int
         let cityName: String
         let timeZoneOffset: Int
-        let visibility: Int
+        let visibility: Int?
 
         let sysInfo: Sys
         let coordinates: Coordinates
@@ -76,12 +76,12 @@ extension WeatherServices.OpenWeatherMap {
             let feelsK = try container.decode(Double.self, forKey: .feelsLike)
             let minK = try container.decode(Double.self, forKey: .minTemp)
             let maxK = try container.decode(Double.self, forKey: .minTemp)
-            temp = .kelvin(tempK)
-            feelsLike = .kelvin(feelsK)
-            minTemp = .kelvin(minK)
-            maxTemp = .kelvin(maxK)
+            temp = WeatherServices.Types.TemperatureValue(kelvin: tempK)
+            feelsLike = WeatherServices.Types.TemperatureValue(kelvin: feelsK)
+            minTemp = WeatherServices.Types.TemperatureValue(kelvin: minK)
+            maxTemp = WeatherServices.Types.TemperatureValue(kelvin: maxK)
             let baroInMetric = try container.decode(Int.self, forKey: .pressure)
-            pressure = .hpa(Double(baroInMetric))
+            pressure = WeatherServices.Types.BaroPressusre(hpa: Double(baroInMetric))
             humidity = try container.decode(Int.self, forKey: .humidity)
         }
 
@@ -116,7 +116,7 @@ extension WeatherServices.OpenWeatherMap {
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             let speedMSec = try container.decode(Double.self, forKey: .speed)
-            speed = .msec(speedMSec)
+            speed = WeatherServices.Types.Speed(metersPerSec: speedMSec)
             direction = try container.decode(Double.self, forKey: .direction)
         }
 
@@ -190,11 +190,10 @@ extension WeatherServices.OpenWeatherMap.Temperature: MetricOrImperialRepresenta
         return
             """
             Temperature:
-            \tCurrent: \(imperial ? temp.asImperial : temp.asMetric)
-            \tFeels Like: \(imperial ? feelsLike.asImperial : feelsLike.asMetric)
-            \tMin: \(imperial ? minTemp.asImperial : minTemp.asMetric) Max: \(imperial ? maxTemp.asImperial : maxTemp.asMetric)
+            \tCurrent: \(temp.description(asImperial: imperial))
+            \tFeels Like: \(feelsLike.description(asImperial: imperial))
             \tHumidity: \(humidity)%
-            \tPressure: \(imperial ? pressure.asImperial : pressure.asMetric)
+            \tPressure: \(pressure.description(asImperial: imperial))
             """
     }
 }
@@ -204,7 +203,7 @@ extension WeatherServices.OpenWeatherMap.Wind: MetricOrImperialRepresentable {
         return
             """
             Wind:
-            \t\(imperial ? speed.asImperial : speed.asMetric) at \(direction)°
+            \t\(speed.toImperial(imperial).formatted(to: 2)) at \(direction)°
             """
     }
 }

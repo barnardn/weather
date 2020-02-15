@@ -54,13 +54,8 @@ extension WeatherServicesTests {
     }
     
     func hasValidTemperature(temp: WeatherServices.OpenWeatherMap.Temperature) {
-        switch (temp.temp.asMetric, temp.temp.asImperial) {
-        case (.celcius(let celVal), .fahrenheit(let farVal)):
-            XCTAssertEqual(celVal.formatted(to: 2), "8.85")
-            XCTAssertEqual(farVal.formatted(to: 2), "47.93")
-        default:
-            XCTFail()
-        }
+        XCTAssertEqual(temp.temp.celcius.formatted(to: 2), "8.85")
+        XCTAssertEqual(temp.temp.fahrenheit.formatted(to: 2), "47.93")
     }
     
     func hasValidLocation(location: WeatherServices.OpenWeatherMap.Coordinates) {
@@ -69,15 +64,9 @@ extension WeatherServicesTests {
     }
 
     func hasValidWindSpeed(windSpeed: WeatherServices.OpenWeatherMap.Wind?) {
-        guard let windSpeed = windSpeed else { return XCTFail() }
-        
-        switch (windSpeed.speed.asImperial, windSpeed.speed.asMetric) {
-        case (.mph(let mph), .kph(let kph)):
-            XCTAssertEqual(mph.formatted(to: 2), "3.36")
-            XCTAssertEqual(kph.formatted(to: 1), "5.4")
-        default:
-            XCTFail()
-        }
+        guard let windSpeed = windSpeed else { return XCTFail() }        
+        XCTAssertEqual(windSpeed.speed.mph.formatted(to: 2), "3.36")
+        XCTAssertEqual(windSpeed.speed.kph.formatted(to: 1), "5.4")
         XCTAssertEqual(windSpeed.direction, 350)
     }
     

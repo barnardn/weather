@@ -51,7 +51,7 @@ do {
             }
         }) { currentConditions in
             if currentTempOnly {
-                print(currentConditions.currentTemperature.toImperial(!displayAsMetric).formatted(to: 2))
+                print(currentConditions.currentTemperature.description(asImperial: !displayAsMetric))
             } else {
                 print("\(currentConditions.description(asImperial: !displayAsMetric))")
             }

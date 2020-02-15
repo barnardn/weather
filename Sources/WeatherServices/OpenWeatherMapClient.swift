@@ -30,7 +30,7 @@ public extension WeatherServices.OpenWeatherMap {
         let zipCode: String
 
         internal var baseURL: URL {
-            return URL(string: "http://\(host)/data/2.5/weather?appid=\(apiKey)")!
+            return URL(string: "http://\(Self.host)/data/2.5/weather?appid=\(apiKey)")!
         }
 
         /// designated initializer
@@ -77,10 +77,10 @@ public extension WeatherServices.OpenWeatherMap {
         }
         
         public func isApiReachable() -> Bool {
-            guard let reachability = SCNetworkReachabilityCreateWithName(nil, ClientConfig.host) else { return false }
-            let flags = SCNetworkReachabilityFlags()
-            return scn
-            
+            guard let reachabilityTarget = SCNetworkReachabilityCreateWithName(nil, ClientConfig.host) else { return false }
+            var flags = SCNetworkReachabilityFlags()
+            guard SCNetworkReachabilityGetFlags(reachabilityTarget, &flags) == true else { return false }
+            return flags.contains(.reachable)
         }
         
     }

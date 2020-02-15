@@ -35,6 +35,11 @@ do {
     let clientConfig = WeatherServices.OpenWeatherMap.ClientConfig(apiKey: apiKey, zipCode: zipCode)
 
     let openWeatherMap = WeatherServices.OpenWeatherMap.Client(config: clientConfig)
+    
+    guard openWeatherMap.isApiReachable() else {
+        print("You must be connected to the Internet. No connection is currently available.")
+        exit(-1)
+    }
 
     let waitSemaphore = DispatchSemaphore(value: 0)
 

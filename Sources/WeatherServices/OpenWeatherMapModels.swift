@@ -203,7 +203,7 @@ extension WeatherServices.OpenWeatherMap.Wind: MetricOrImperialRepresentable {
         return
             """
             Wind:
-            \t\(speed.toImperial(imperial).formatted(to: 2)) at \(direction)°
+            \t\(speed.description(asImperial: imperial)) at \(direction)°
             """
     }
 }

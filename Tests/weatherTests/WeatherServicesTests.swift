@@ -29,19 +29,67 @@ class WeatherServicesTests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
-    func testDeserialize() {
+    private func deserializeMock() -> WeatherServices.OpenWeatherMap.CurrentConditions? {
         let jsonDecoder = JSONDecoder()
-        let currentConditions = try! jsonDecoder.decode(
+        let currentConditions = try? jsonDecoder.decode(
             WeatherServices.OpenWeatherMap.CurrentConditions.self,
             from: currentConditionsData
         )
-        XCTAssertNotNil(currentConditions)
-        XCTAssertEqual(currentConditions.cityName, "Mountain View")
-        hasValidWeather(weather: currentConditions.weather.first!)
-        hasValidTemperature(temp: currentConditions.temperature)
-        hasValidLocation(location: currentConditions.coordinates)
-        hasValidWindSpeed(windSpeed: currentConditions.wind)
+        return currentConditions
     }
+
+
+    func testDeserialize() {
+        let currentConditions = deserializeMock()
+        XCTAssertNotNil(currentConditions)
+        XCTAssertEqual(currentConditions!.cityName, "Mountain View")
+        hasValidWeather(weather: currentConditions!.weather.first!)
+        hasValidTemperature(temp: currentConditions!.temperature)
+        hasValidLocation(location: currentConditions!.coordinates)
+        hasValidWindSpeed(windSpeed: currentConditions!.wind)
+    }
+
+    func testOutputImperialWind() {
+        guard let currentConditions = deserializeMock() else {
+            return XCTFail("Expected non-nil current conditions")
+        }
+        let imperialOutput = currentConditions.wind?.description(asImperial: true)
+        XCTAssertEqual(imperialOutput, "Wind:\n\t3.36mph at 350.0°")
+    }
+
+    func testOutputMetricWind() {
+        guard let currentConditions = deserializeMock() else {
+            return XCTFail("Expected non-nil current conditions")
+        }
+        let imperialOutput = currentConditions.wind?.description(asImperial: false)
+        XCTAssertEqual(imperialOutput, "Wind:\n\t5.40kph at 350.0°")
+    }
+
+
+    func testOutputImperialTemps() {
+        guard let currentConditions = deserializeMock() else {
+            return XCTFail("Expected non-nil current conditions")
+        }
+        var imperialOutput = currentConditions.temperature.temp.description(asImperial: true)
+        XCTAssertEqual(imperialOutput, "47.93°F")
+        imperialOutput = currentConditions.temperature.feelsLike.description(asImperial: true)
+        XCTAssertEqual(imperialOutput, "26.33°F")
+        XCTAssertEqual("Humidity: \(currentConditions.temperature.humidity)%", "Humidity: 100%")
+        XCTAssertEqual(currentConditions.temperature.pressure.description(asImperial: true), "0.15psi")
+    }
+
+    func testOuptputMetricTemps() {
+        guard let currentConditions = deserializeMock() else {
+            return XCTFail("Expected non-nil current conditions")
+        }
+        var imperialOutput = currentConditions.temperature.temp.description(asImperial: false)
+        XCTAssertEqual(imperialOutput, "8.85°C")
+        imperialOutput = currentConditions.temperature.feelsLike.description(asImperial: false)
+        XCTAssertEqual(imperialOutput, "-3.15°C")
+        XCTAssertEqual("Humidity: \(currentConditions.temperature.humidity)%", "Humidity: 100%")
+        XCTAssertEqual(currentConditions.temperature.pressure.description(asImperial: false), "1023.00hpa")
+    }
+
 
 }
 

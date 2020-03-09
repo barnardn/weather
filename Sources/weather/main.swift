@@ -30,7 +30,7 @@ do {
     guard let apiKey = ProcessInfo.processInfo.environment["OPENWEATHERMAP_API"] else {
         argParser.printUsage(on: Basic.stderrStream)
         print("\nMissing Environment Variable: set the OPENWEATHERMAP_API environment variable to your api key.\n\n")
-        exit(-1)
+        exit(EXIT_FAILURE)
     }
     let clientConfig = WeatherServices.OpenWeatherMap.ClientConfig(apiKey: apiKey, zipCode: zipCode)
 
@@ -38,7 +38,7 @@ do {
     
     guard openWeatherMap.isApiReachable() else {
         print("You must be connected to the Internet. No connection is currently available.")
-        exit(-1)
+        exit(EXIT_FAILURE)
     }
 
     let waitSemaphore = DispatchSemaphore(value: 0)

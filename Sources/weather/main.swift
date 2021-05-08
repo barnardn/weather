@@ -6,63 +6,63 @@
 //  Copyright © 2020 normbarnard.com. All rights reserved.
 //
 
+import ArgumentParser
 import Foundation
 import Combine
-import SPMUtility
-import Basic
+import TSCBasic
 import WeatherServices
 
-let argParser = ArgumentParser(commandName: "weather", usage: "<flags> ZipCode", overview: "returns the current weather")
-let temperatureOnlyArg = argParser.add(option: "--just-temp", shortName: "-j", kind: Bool.self, usage: "return only the temperature", completion: ShellCompletion.none)
-let metricUnitsArg = argParser.add(option: "--metric", shortName: "-m", kind: Bool.self, usage: "display metric values", completion: ShellCompletion.none)
-let zipCodeArg = argParser.add(positional: "ZipCode", kind: String.self, optional: false, usage: "5 digit zip code", completion: ShellCompletion.none)
+@available(OSX 10.15, *)
+
+extension String: Error {}
 
 var cancellable: AnyCancellable?
 
-let argv = Array(CommandLine.arguments.dropFirst())
-do {
-    let parsedArgs = try argParser.parse(argv)
-    guard let zipCode = parsedArgs.get(zipCodeArg) else { exit(-1) }
-
-    let currentTempOnly = parsedArgs.get(temperatureOnlyArg) ?? false
-    let displayAsMetric = parsedArgs.get(metricUnitsArg) ?? false
-
-    guard let apiKey = ProcessInfo.processInfo.environment["OPENWEATHERMAP_API"] else {
-        argParser.printUsage(on: Basic.stderrStream)
-        print("\nMissing Environment Variable: set the OPENWEATHERMAP_API environment variable to your api key.\n\n")
-        exit(EXIT_FAILURE)
-    }
-    let clientConfig = WeatherServices.OpenWeatherMap.ClientConfig(apiKey: apiKey, zipCode: zipCode)
-
-    let openWeatherMap = WeatherServices.OpenWeatherMap.Client(config: clientConfig)
+struct WeatherCommand: ParsableCommand {
     
-    guard openWeatherMap.isApiReachable() else {
-        print("You must be connected to the Internet. No connection is currently available.")
-        exit(EXIT_FAILURE)
-    }
-
-    let waitSemaphore = DispatchSemaphore(value: 0)
-
-    cancellable = openWeatherMap.fetchCurrentConditions()
-        .sink(receiveCompletion: { completionEvent in
-            defer { waitSemaphore.signal() }
-            if case .failure(let error) = completionEvent {
-                print("Failed to get weather \(error)")
-            }
-        }) { currentConditions in
-            if currentTempOnly {
-                print(currentConditions.currentTemperature.description(asImperial: !displayAsMetric))
-            } else {
-                print("\(currentConditions.description(asImperial: !displayAsMetric))")
-            }
+    @Flag(name: .shortAndLong, help: "returns only the temperature")
+    var justTemp = false
+    
+    @Flag(name: .shortAndLong, help: "display metric values")
+    var metric = false
+ 
+    @Argument(help: "5 digit zip code")
+    var zipCode: String
+    
+    mutating func run() throws {
+        
+        guard let apiKey = ProcessEnv.vars["OPENWEATHERMAP_API"] else {
+            throw "Missing Environment Variable: set the OPENWEATHERMAP_API environment variable to your api key."
         }
+        let clientConfig = WeatherServices.OpenWeatherMap.ClientConfig(apiKey: apiKey, zipCode: zipCode)
+        let openWeatherMap = WeatherServices.OpenWeatherMap.Client(config: clientConfig)
+        guard openWeatherMap.isApiReachable() else {
+            throw "You must be connected to the Internet. No connection is currently available."
+        }
+        
+        let waitSemaphore = DispatchSemaphore(value: 0)
 
-    waitSemaphore.wait()
+        cancellable = openWeatherMap.fetchCurrentConditions()
+            .sink(receiveCompletion: { completionEvent in
+                defer { waitSemaphore.signal() }
+                if case .failure(let error) = completionEvent {
+                    print("Failed to get weather \(error)")
+                }
+            }) { [justTemp, metric] currentConditions in
+                if justTemp {
+                    print(currentConditions.currentTemperature.description(asImperial: !metric))
+                } else {
+                    print("\(currentConditions.description(asImperial: !metric))")
+                }
+            }
 
-} catch ArgumentParserError.expectedValue(let option) {
-    print("Missing value for argument \(option)")
-} catch ArgumentParserError.expectedArguments(let parser,let missingArgs) {
-    print("\(parser) missing: \(missingArgs.joined())")
-} catch {
-    print(error.localizedDescription)
+        waitSemaphore.wait()
+    }
+}
+
+if #available(OSX 10.15, *) {
+    WeatherCommand.main()
+} else {
+    print("Update to a macos 10.15 or better")
+    exit(1)
 }

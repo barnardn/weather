@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import Combine
 import SystemConfiguration
 
 public extension WeatherServices.ServiceErrors {
@@ -51,30 +50,29 @@ public extension WeatherServices.OpenWeatherMap {
         public init(config: ClientConfig) {
             self.config = config
         }
-        
-        public func fetchCurrentConditions() -> AnyPublisher<CurrentConditions, WeatherServices.ServiceErrors.RequestError> {
+
+        public func fetchCurrentConditions2() async throws -> CurrentConditions {
             let zip = URLQueryItem(name: "zip", value: config.zipCode)
 
             guard let requestURL = config.baseURL.urlByAppending(parameters: [zip]) else {
-                return Fail(
-                    error: WeatherServices.ServiceErrors.RequestError.badURL(config.baseURL.absoluteString, [zip])
-                ).eraseToAnyPublisher()
+                throw WeatherServices.ServiceErrors.RequestError.badURL(config.baseURL.absoluteString, [zip])
             }
-            let publisher = URLSession.shared.dataTaskPublisher(for: requestURL)
-            return publisher.tryMap { fetchData, response -> Data in
-                guard
-                    let httpResponse = response as? HTTPURLResponse,
-                    httpResponse.statusCode == 200
-                else {
-                    throw WeatherServices.ServiceErrors.RequestError.badResponse(response)
-                }
-                return fetchData
+
+            let (data, response) = try await URLSession.shared.data(from: requestURL)
+            guard
+                let response = response as? HTTPURLResponse, response.statusCode == 200
+            else {
+                throw WeatherServices.ServiceErrors.RequestError.badResponse(response)
             }
-            .decode(type: WeatherServices.OpenWeatherMap.CurrentConditions.self, decoder: JSONDecoder())
-            .mapError { e in
-                return WeatherServices.ServiceErrors.RequestError.badData(e)
-            }.eraseToAnyPublisher()
+
+            do {
+                let jsonDecoder = JSONDecoder()
+                return try jsonDecoder.decode(WeatherServices.OpenWeatherMap.CurrentConditions.self, from: data)
+            } catch  {
+                throw WeatherServices.ServiceErrors.RequestError.badData(error)
+            }
         }
+        
         
         public func isApiReachable() -> Bool {
             guard let reachabilityTarget = SCNetworkReachabilityCreateWithName(nil, ClientConfig.host) else { return false }

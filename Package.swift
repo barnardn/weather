@@ -1,4 +1,4 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.5
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "weather",
     platforms: [
-        .macOS(.v10_15),
+        .macOS(.v12),
     ],
     products: [
         .executable(name: "weather", targets: ["weather"]),
@@ -15,7 +15,7 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
-        .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMajor(from: "0.4.0")),
+        .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMajor(from: "1.1.0")),
         .package(url: "https://github.com/apple/swift-tools-support-core", .upToNextMajor(from: "0.2.0"))
     ],
     targets: [
@@ -27,7 +27,7 @@ let package = Package(
                 .product(name: "SwiftToolsSupport-auto", package: "swift-tools-support-core"),
             ]
         ),
-        .target(
+        .executableTarget(
             name: "weather",
             dependencies: [
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
